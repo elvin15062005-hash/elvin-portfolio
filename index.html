@@ -14,7 +14,6 @@
       --ink: #0a0a0a;
       --muted: #737373;
       --line: #e5e5e5;
-      --line-strong: #c4c4c4;
       --accent: #ff3b00;
     }
 
@@ -52,7 +51,7 @@
       top: 0;
       bottom: 0;
       width: 1px;
-      background: rgba(10, 10, 10, 0.08);
+      background: rgba(10, 10, 10, 0.07);
       pointer-events: none;
       z-index: 5;
     }
@@ -62,7 +61,7 @@
       left: 0;
       right: 0;
       height: 1px;
-      background: rgba(10, 10, 10, 0.06);
+      background: rgba(10, 10, 10, 0.05);
       pointer-events: none;
       z-index: 5;
     }
@@ -71,13 +70,14 @@
     .planet-node {
       position: absolute;
       transform: translate(-50%, -50%);
+      pointer-events: auto;
       cursor: pointer;
       transition: opacity 0.35s ease, filter 0.35s ease;
       z-index: 20;
     }
 
     .planet-node.dimmed {
-      opacity: 0.22;
+      opacity: 0.2;
       filter: grayscale(1);
     }
 
@@ -87,12 +87,17 @@
       transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
     }
 
+    .planet-node:hover,
+    .planet-node.locked {
+      z-index: 28;
+    }
+
     .planet-node:hover .planet-sphere,
-    .planet-node.active .planet-sphere {
+    .planet-node.locked .planet-sphere {
       transform: scale(1.12);
     }
 
-    /* Targeting brackets on hover */
+    /* Targeting brackets on hover or default lock */
     .target-bracket {
       position: absolute;
       inset: -12px;
@@ -103,41 +108,16 @@
     }
 
     .planet-node:hover .target-bracket,
-    .planet-node.active .target-bracket {
+    .planet-node.locked .target-bracket {
       opacity: 1;
       transform: scale(1);
     }
 
-    /* Radar ping animation */
-    @keyframes radarPing {
-      0% {
-        transform: translate(-50%, -50%) scale(0.1);
-        opacity: 0.65;
-      }
-      100% {
-        transform: translate(-50%, -50%) scale(2.8);
-        opacity: 0;
-      }
-    }
-
-    .ping-wave {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 320px;
-      height: 320px;
-      border-radius: 9999px;
-      border: 1px solid var(--accent);
-      pointer-events: none;
-      animation: radarPing 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      z-index: 10;
-    }
-
-    /* Giant display typography inspired by reference */
+    /* Compact footer display typography (scaled down ~35% from v1) */
     .hero-wordmark {
-      font-size: clamp(3.2rem, 10.5vw, 8.8rem);
-      line-height: 0.84;
-      letter-spacing: -0.045em;
+      font-size: clamp(2.4rem, 6.2vw, 5.2rem);
+      line-height: 0.88;
+      letter-spacing: -0.04em;
       user-select: none;
     }
 
@@ -145,9 +125,9 @@
       font-family: 'Instrument Serif', Georgia, serif;
       font-style: italic;
       font-weight: 400;
-      font-size: 1.18em;
+      font-size: 1.15em;
       display: inline-block;
-      transform: translateY(0.03em);
+      transform: translateY(0.02em);
       margin-right: -0.02em;
     }
 
@@ -160,7 +140,6 @@
       animation: pulseDot 1.8s ease-in-out infinite;
     }
 
-    /* Custom scrollbar for drawer */
     ::-webkit-scrollbar {
       width: 5px;
       height: 5px;
@@ -180,9 +159,9 @@
   <div id="cursor-v" class="crosshair-v hidden md:block" style="left: -10px; background: rgba(255, 59, 0, 0.16);"></div>
   <div id="cursor-h" class="crosshair-h hidden md:block" style="top: -10px; background: rgba(255, 59, 0, 0.16);"></div>
 
-  <!-- TOP NAVIGATION / TELEMETRY HEADER (Inspired by Reference Layout) -->
-  <header class="relative z-30 w-full px-4 sm:px-8 pt-4 pb-3 border-b border-neutral-200/80 bg-white/90 backdrop-blur-sm">
-    <div class="max-w-[1600px] mx-auto grid grid-cols-2 md:grid-cols-12 gap-y-3 items-start text-[11px] sm:text-xs leading-tight">
+  <!-- TOP NAVIGATION / TELEMETRY HEADER -->
+  <header class="relative z-30 w-full px-4 sm:px-8 pt-3.5 pb-2.5 border-b border-neutral-200/80 bg-white/90 backdrop-blur-sm">
+    <div class="max-w-[1600px] mx-auto grid grid-cols-2 md:grid-cols-12 gap-y-2 items-start text-[11px] sm:text-xs leading-tight">
 
       <!-- Left Identity Block -->
       <div class="col-span-1 md:col-span-4 flex flex-col gap-0.5">
@@ -193,12 +172,12 @@
         <div class="text-neutral-500 font-mono-tech text-[10px] sm:text-[11px]">
           BASED IN TAIPEI · 25.03°N 121.56°E
         </div>
-        <div class="text-neutral-400 font-mono-tech text-[10px] hidden sm:block mt-0.5" id="mission-clock">
+        <div class="text-neutral-400 font-mono-tech text-[10px] hidden sm:block" id="mission-clock">
           MISSION TIME 00:00:00 UTC+8
         </div>
       </div>
 
-      <!-- Center View Switcher (Like 滑桿 | 清單 in Reference) -->
+      <!-- Center View Switcher -->
       <div class="col-span-2 md:col-span-4 order-3 md:order-2 flex justify-start md:justify-center items-center gap-3 pt-1 md:pt-0">
         <button id="btn-view-orbital" class="view-toggle-btn font-medium text-neutral-900 border-b border-neutral-900 pb-0.5 transition-colors cursor-pointer">
           星圖軌道 ORBITAL
@@ -209,20 +188,21 @@
         </button>
       </div>
 
-      <!-- Right Category Filter Stack & Info Links (Like Reference Top-Right) -->
-      <div class="col-span-1 md:col-span-4 order-2 md:order-3 flex justify-end items-start gap-5 sm:gap-8">
-        <!-- Category Stack -->
-        <div class="hidden sm:flex flex-col items-start text-[11px] leading-[1.35]" id="category-filters">
-          <!-- Populated by JS -->
+      <!-- Right Category Filter Dropdown & About -->
+      <div class="col-span-1 md:col-span-4 order-2 md:order-3 flex justify-end items-center gap-5 sm:gap-6">
+        <div class="hidden sm:block relative group" id="filter-dropdown-wrap">
+          <button id="btn-filter-trigger" class="flex items-center gap-1.5 font-mono-tech text-[11px] px-2.5 py-1 border border-neutral-300 hover:border-neutral-900 bg-white transition-colors cursor-pointer">
+            <span id="filter-current-label" class="text-neutral-950 font-medium">ALL [06]</span>
+            <span class="text-[9px] text-neutral-400">▾</span>
+          </button>
+          <div id="category-filters" class="hidden group-hover:flex flex-col items-stretch gap-0.5 absolute right-0 top-full pt-1.5 w-48 z-50">
+            <!-- Populated by JS -->
+          </div>
         </div>
 
-        <!-- Secondary Nav -->
         <div class="flex items-center gap-4 font-medium">
-          <button id="btn-ping" class="font-mono-tech text-[10px] px-2 py-1 border border-neutral-300 hover:border-neutral-900 hover:bg-neutral-900 hover:text-white transition-colors cursor-pointer" title="發射雷達掃描波 (Space)">
-            PING ✦
-          </button>
           <button id="btn-about" class="hover:text-[#ff3b00] transition-colors cursor-pointer">
-            關於 FLIGHT LOG
+            關於 ABOUT
           </button>
         </div>
       </div>
@@ -230,106 +210,112 @@
     </div>
 
     <!-- Mobile Category Filter Strip -->
-    <div class="flex sm:hidden items-center gap-3 overflow-x-auto pt-2.5 mt-2 border-t border-neutral-100 text-[11px]" id="category-filters-mobile">
-      <!-- Populated by JS -->
-    </div>
+    <div class="flex sm:hidden items-center gap-3 overflow-x-auto pt-2 mt-2 border-t border-neutral-100 text-[11px]" id="category-filters-mobile"></div>
   </header>
 
   <!-- MAIN WORKSPACE: ORBITAL HERO DASHBOARD OR MANIFEST LIST -->
   <main class="relative flex-1 flex flex-col justify-between overflow-hidden space-grid-bg">
 
-    <!-- ORBITAL VIEW (Hero Section Interactive Space Dashboard) -->
-    <section id="orbital-view" class="relative w-full flex-1 min-h-[380px] sm:min-h-[430px] flex items-center justify-center overflow-hidden">
+    <!-- ORBITAL VIEW -->
+    <section id="orbital-view" class="relative w-full flex-1 min-h-[420px] flex items-center justify-center overflow-hidden">
 
-      <!-- Subtle Corner Telemetry Readouts -->
-      <div class="absolute top-4 left-4 sm:left-8 z-10 pointer-events-none font-mono-tech text-[10px] text-neutral-400 space-y-0.5">
+      <!-- Corner Telemetry Readouts -->
+      <div class="absolute top-3.5 left-4 sm:left-8 z-10 pointer-events-none font-mono-tech text-[10px] text-neutral-400 space-y-0.5">
         <div>SECTOR: <span id="telemetry-sector" class="text-neutral-800">SOL-SYSTEM / ALL</span></div>
         <div>CURSOR: <span id="telemetry-coords" class="text-neutral-800">AZ 000.0° · EL +00.0°</span></div>
       </div>
 
-      <div class="absolute top-4 right-4 sm:right-8 z-20 flex items-center gap-2 font-mono-tech text-[10px]">
+      <!-- Orbit Control -->
+      <div class="absolute top-3.5 right-4 sm:right-8 z-30 flex items-center gap-2 font-mono-tech text-[10px]">
         <button id="btn-orbit-toggle" class="px-2.5 py-1 bg-white/90 border border-neutral-300 hover:border-neutral-900 text-neutral-700 transition-colors cursor-pointer">
           ❚❚ PAUSE ORBIT
         </button>
       </div>
 
-      <!-- Orbital SVG Rings Layer -->
-      <svg id="orbital-rings-svg" class="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice">
+      <!-- Orbital SVG Rings Layer (Synced 1:1 with planet coordinates in JS) -->
+      <svg id="orbital-rings-svg" class="absolute inset-0 w-full h-full pointer-events-none z-0">
         <defs>
           <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#ff3b00" stop-opacity="0.09" />
+            <stop offset="0%" stop-color="#ff3b00" stop-opacity="0.08" />
             <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
           </radialGradient>
         </defs>
-        <circle cx="600" cy="340" r="240" fill="url(#coreGlow)" />
-        <!-- Concentric Orbital Paths -->
-        <ellipse cx="600" cy="340" rx="155" ry="110" fill="none" stroke="#e5e5e5" stroke-width="1" />
-        <ellipse cx="600" cy="340" rx="265" ry="175" fill="none" stroke="#d4d4d4" stroke-width="1" stroke-dasharray="4 4" />
-        <ellipse cx="600" cy="340" rx="385" ry="240" fill="none" stroke="#e5e5e5" stroke-width="1" />
-        <ellipse cx="600" cy="340" rx="510" ry="300" fill="none" stroke="#e5e5e5" stroke-width="1" stroke-dasharray="2 6" />
-        <!-- Degree ticks -->
-        <text x="604" y="95" class="font-mono-tech" font-size="9" fill="#a3a3a3">000° N</text>
-        <text x="995" y="344" class="font-mono-tech" font-size="9" fill="#a3a3a3">090° E</text>
-        <text x="175" y="344" class="font-mono-tech" font-size="9" fill="#a3a3a3">270° W</text>
+        <circle id="svg-glow" cx="50%" cy="50%" r="200" fill="url(#coreGlow)" />
+        <ellipse id="ring-1" cx="50%" cy="50%" rx="165" ry="115" fill="none" stroke="#d4d4d4" stroke-width="1" />
+        <ellipse id="ring-2" cx="50%" cy="50%" rx="285" ry="185" fill="none" stroke="#d4d4d4" stroke-width="1" stroke-dasharray="4 4" />
+        <ellipse id="ring-3" cx="50%" cy="50%" rx="405" ry="250" fill="none" stroke="#e5e5e5" stroke-width="1" />
+        <ellipse id="ring-4" cx="50%" cy="50%" rx="525" ry="305" fill="none" stroke="#e5e5e5" stroke-width="1" stroke-dasharray="2 6" />
+        <text id="deg-n" x="50%" y="20" class="font-mono-tech" font-size="9" fill="#a3a3a3">000° N</text>
+        <text id="deg-e" x="85%" y="50%" class="font-mono-tech" font-size="9" fill="#a3a3a3">090° E</text>
+        <text id="deg-w" x="15%" y="50%" class="font-mono-tech" font-size="9" fill="#a3a3a3">270° W</text>
       </svg>
 
-      <!-- Central Star / Mission Core -->
-      <button id="mission-core-btn" class="relative z-15 group flex flex-col items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white border border-neutral-900 shadow-[0_0_0_6px_rgba(255,255,255,0.85)] hover:border-[#ff3b00] transition-all cursor-pointer" title="點擊發射星圖掃描波">
-        <span class="font-mono-tech text-[9px] text-neutral-400 group-hover:text-[#ff3b00] tracking-widest">CORE</span>
-        <span class="font-medium text-xs tracking-tight mt-0.5">ELVIN-01</span>
-        <span class="font-mono-tech text-[8px] text-neutral-400 mt-0.5">CLICK TO PING</span>
+      <!-- Central Star / Mission Core -> Opens About Profile -->
+      <button id="mission-core-btn" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 group flex flex-col items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white border border-neutral-900 shadow-[0_0_0_6px_rgba(255,255,255,0.88)] hover:border-[#ff3b00] hover:scale-105 transition-all cursor-pointer text-center px-2" title="點擊開啟 Elvin 個人簡介">
+        <span class="font-mono-tech text-[8px] text-neutral-400 group-hover:text-[#ff3b00] tracking-widest">ELVIN'S</span>
+        <span class="font-medium text-xs tracking-tight mt-0.5">UNIVERSE</span>
+        <span class="font-mono-tech text-[8px] text-neutral-400 mt-1 group-hover:text-neutral-700">ABOUT →</span>
       </button>
 
       <!-- Scattered Interactive Planets Container -->
-      <div id="planets-stage" class="absolute inset-0 w-full h-full z-20">
-        <!-- Planets injected & animated by JS -->
-      </div>
+      <div id="planets-stage" class="absolute inset-0 w-full h-full z-20 pointer-events-none"></div>
 
-      <!-- Hover Telemetry Preview Card (Bottom-Left or Floating) -->
-      <div id="hover-hud" class="pointer-events-none fixed bottom-24 sm:bottom-36 left-4 sm:left-8 z-30 w-64 sm:w-72 bg-white/95 backdrop-blur-md border border-neutral-900 p-3.5 shadow-sm opacity-0 translate-y-2 transition-all duration-200">
-        <div class="flex items-center justify-between font-mono-tech text-[10px] text-neutral-500 mb-1">
-          <span id="hud-code">M-01 // ORBIT 1.2 AU</span>
-          <span id="hud-year" class="text-[#ff3b00]">2025</span>
-        </div>
-        <div id="hud-title" class="text-sm font-semibold text-neutral-900 leading-snug">Project Title</div>
-        <div id="hud-subtitle" class="text-xs text-neutral-500 mt-1 line-clamp-2">Short description</div>
-        <div class="mt-2.5 pt-2 border-t border-neutral-200 flex items-center justify-between font-mono-tech text-[10px] text-neutral-800">
-          <span id="hud-role">ROLE</span>
-          <span>CLICK TO LAND →</span>
+      <!-- UAP Unidentified Signal Easter Egg (Minimalist Saucer Dot) -->
+      <button id="uap-craft" class="absolute z-[25] group p-1.5 rounded-full hover:scale-125 transition-transform cursor-pointer" style="left: -80px; top: 22%;" title="不明飛行訊號 — 點擊攔截">
+        <svg width="26" height="16" viewBox="0 0 26 16" fill="none" class="overflow-visible">
+          <ellipse cx="13" cy="9" rx="11" ry="3.5" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.2"/>
+          <path d="M8.5 7.5C8.5 4.8 10.5 3 13 3C15.5 3 17.5 4.8 17.5 7.5" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.2"/>
+          <circle cx="13" cy="9" r="2" fill="#ff3b00" class="telemetry-dot"/>
+        </svg>
+      </button>
+
+      <!-- Locked / Hover Telemetry Preview Card (With Project Image Preview!) -->
+      <div id="hover-hud" class="absolute z-30 w-64 sm:w-72 bg-white/95 backdrop-blur-md border border-neutral-900 shadow-md transition-opacity duration-150 hidden sm:block opacity-0 pointer-events-none" style="left:0; top:0;">
+        <!-- Project Thumbnail Slot -->
+        <div id="hud-thumb" class="w-full h-32 border-b border-neutral-200 bg-neutral-50 overflow-hidden relative"></div>
+        <div class="p-3">
+          <div class="flex items-center justify-between font-mono-tech text-[10px] text-neutral-500 mb-1">
+            <span id="hud-code">M-01 // FEATURED</span>
+            <span id="hud-year" class="text-[#ff3b00]">2025</span>
+          </div>
+          <div id="hud-title" class="text-sm font-semibold text-neutral-900 leading-snug">Project Title</div>
+          <div id="hud-subtitle" class="text-xs text-neutral-500 mt-1 line-clamp-2">Short description</div>
+          <div class="mt-2.5 pt-2 border-t border-neutral-200 flex items-center justify-between font-mono-tech text-[10px] text-neutral-800">
+            <span id="hud-role">ROLE</span>
+            
+          </div>
         </div>
       </div>
 
     </section>
 
-    <!-- MANIFEST VIEW (Clean Swiss Index Table, toggled via 任務清單 MANIFEST) -->
-    <section id="manifest-view" class="hidden relative z-20 w-full max-w-[1400px] mx-auto px-4 sm:px-8 py-10 flex-1">
+    <!-- MANIFEST VIEW (Scalable Archive for All Projects) -->
+    <section id="manifest-view" class="hidden relative z-20 w-full max-w-[1400px] mx-auto px-4 sm:px-8 py-8 flex-1 overflow-y-auto">
       <div class="flex items-baseline justify-between border-b border-neutral-900 pb-3 mb-4">
         <h2 class="font-mono-tech text-xs tracking-widest uppercase text-neutral-900">MISSION MANIFEST / ALL EXPLORATIONS</h2>
         <span id="manifest-count" class="font-mono-tech text-xs text-neutral-500">06 MISSIONS LOGGED</span>
       </div>
-      <div id="manifest-list" class="divide-y divide-neutral-200">
-        <!-- Populated by JS -->
-      </div>
+      <div id="manifest-list" class="divide-y divide-neutral-200"></div>
     </section>
 
-    <!-- GIANT EDITORIAL WORDMARK FOOTER (Inspired by Reference Bottom Typography) -->
-    <div class="relative z-10 w-full px-3 sm:px-6 pb-2 pt-2 border-t border-neutral-200/80 bg-white/80 backdrop-blur-xs flex flex-col">
-      <div class="flex items-center justify-between font-mono-tech text-[9px] sm:text-[10px] text-neutral-400 uppercase tracking-wider mb-1">
+    <!-- COMPACT EDITORIAL WORDMARK FOOTER -->
+    <footer class="relative z-10 w-full px-4 sm:px-8 py-2 border-t border-neutral-200/80 bg-white/90 backdrop-blur-xs flex flex-col">
+      <div class="flex items-center justify-between font-mono-tech text-[9px] text-neutral-400 uppercase tracking-wider mb-0.5">
         <span>SPACE MISSION ARCHIVE · 2021–2026</span>
-        <span class="hidden sm:inline">HOVER PLANETS TO LOCK TARGET · CLICK TO INSPECT MISSION</span>
-        <span>SCROLL / EXPLORE</span>
+        <span class="hidden sm:inline">HOVER PLANET TO PREVIEW · CLICK TO LAND &amp; VIEW CASE STUDY</span>
+        <span>VER 2.0</span>
       </div>
       <div class="hero-wordmark font-medium text-neutral-950 flex items-baseline justify-between w-full overflow-hidden">
         <span><span class="hero-swash-letter">E</span>lvin</span>
-        <span class="text-neutral-200 font-editorial italic font-normal hidden sm:inline" style="font-size: 0.72em;">Mission Control</span>
+        <span class="text-neutral-300 font-editorial italic font-normal hidden sm:inline" style="font-size: 0.65em;">Mission Control</span>
       </div>
-    </div>
+    </footer>
 
   </main>
 
-  <!-- MISSION BRIEFING SLIDE-OVER DRAWER (Case Study Modal) -->
+  <!-- MISSION BRIEFING SLIDE-OVER DRAWER -->
   <div id="mission-drawer-backdrop" class="fixed inset-0 bg-neutral-950/20 backdrop-blur-[2px] z-40 hidden opacity-0 transition-opacity duration-300"></div>
-  <aside id="mission-drawer" class="fixed top-0 right-0 bottom-0 w-full sm:w-[540px] bg-white border-l border-neutral-900 z-50 transform translate-x-full transition-transform duration-300 ease-out flex flex-col">
+  <aside id="mission-drawer" class="fixed top-0 right-0 bottom-0 w-full sm:w-[560px] bg-white border-l border-neutral-900 z-50 transform translate-x-full transition-transform duration-300 ease-out flex flex-col">
     <!-- Drawer Header -->
     <div class="px-6 py-4 border-b border-neutral-200 flex items-center justify-between">
       <div class="font-mono-tech text-xs flex items-center gap-2">
@@ -343,9 +329,8 @@
 
     <!-- Drawer Content -->
     <div class="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-      <!-- Planet Emblem & Title -->
       <div class="flex items-start gap-4">
-        <div id="drawer-planet-preview" class="w-16 h-16 rounded-full shrink-0 border border-neutral-200"></div>
+        <div id="drawer-planet-preview" class="w-14 h-14 rounded-full shrink-0 border border-neutral-200"></div>
         <div>
           <div id="drawer-category" class="font-mono-tech text-[11px] text-[#ff3b00] uppercase tracking-wider">PRODUCT UX</div>
           <h3 id="drawer-title" class="text-2xl font-semibold tracking-tight text-neutral-900 mt-0.5">Mission Title</h3>
@@ -361,7 +346,7 @@
         </div>
         <div>
           <div class="text-neutral-400 text-[10px]">ORBIT / SECTOR</div>
-          <div id="drawer-orbit" class="text-neutral-900 mt-0.5 font-medium">1.2 AU</div>
+          <div id="drawer-orbit" class="text-neutral-900 mt-0.5 font-medium">1.1 AU</div>
         </div>
         <div>
           <div class="text-neutral-400 text-[10px]">STATUS</div>
@@ -369,14 +354,8 @@
         </div>
       </div>
 
-      <!-- Visual Placeholder / Wireframe Graphic -->
-      <div class="w-full h-44 bg-neutral-50 border border-neutral-200 relative overflow-hidden flex items-center justify-center p-4">
-        <div class="absolute top-2 left-3 font-mono-tech text-[9px] text-neutral-400">VISUAL PAYLOAD PREVIEW</div>
-        <div id="drawer-visual" class="text-center">
-          <div class="font-editorial italic text-3xl text-neutral-800" id="drawer-visual-label">Case Study Visual</div>
-          <div class="font-mono-tech text-[10px] text-neutral-400 mt-1">可於此替換實際專案畫面或 Prototype 連結</div>
-        </div>
-      </div>
+      <!-- Project Preview Visual -->
+      <div id="drawer-visual-box" class="w-full h-48 bg-neutral-50 border border-neutral-200 relative overflow-hidden"></div>
 
       <!-- Narrative Sections -->
       <div class="space-y-4 text-sm leading-relaxed text-neutral-700">
@@ -393,6 +372,15 @@
           <p id="drawer-impact" class="text-neutral-900 font-medium"></p>
         </div>
       </div>
+
+      <!-- Detailed Case Study External Link CTA -->
+      <div class="pt-2">
+        <a id="drawer-case-link" href="#" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-between px-4 py-3 bg-neutral-950 text-white hover:bg-[#ff3b00] transition-colors font-mono-tech text-xs">
+          <span>LAUNCH FULL CASE STUDY 詳細專案報告</span>
+          <span>↗</span>
+        </a>
+        <p class="font-mono-tech text-[10px] text-neutral-400 mt-1.5" id="drawer-link-hint">可在程式 MISSIONS 資料中替換為 Notion / Figma / 獨立網頁連結</p>
+      </div>
     </div>
 
     <!-- Drawer Footer Navigation -->
@@ -402,7 +390,7 @@
     </div>
   </aside>
 
-  <!-- ABOUT / FLIGHT LOG MODAL -->
+  <!-- ABOUT / PERSONAL PROFILE MODAL -->
   <div id="about-modal" class="fixed inset-0 bg-neutral-950/25 backdrop-blur-[2px] z-50 hidden items-center justify-center p-4">
     <div class="bg-white border border-neutral-900 max-w-lg w-full p-6 sm:p-8 relative shadow-xl">
       <button id="btn-close-about" class="absolute top-5 right-5 font-mono-tech text-xs px-2 py-1 border border-neutral-300 hover:border-neutral-900 cursor-pointer">✕ CLOSE</button>
@@ -430,17 +418,81 @@
     </div>
   </div>
 
+
+  <!-- UAP SIGNAL INTERCEPT MODAL (Placeholder Entry Point) -->
+  <div id="uap-modal" class="fixed inset-0 bg-neutral-950/25 backdrop-blur-[2px] z-50 hidden items-center justify-center p-4">
+    <div class="bg-white border border-neutral-900 max-w-md w-full p-6 sm:p-7 relative shadow-xl">
+      <button id="btn-close-uap" class="absolute top-5 right-5 font-mono-tech text-xs px-2 py-1 border border-neutral-300 hover:border-neutral-900 cursor-pointer">✕ CLOSE</button>
+      <div class="font-mono-tech text-[10px] text-[#ff3b00] tracking-widest mb-2 flex items-center gap-2">
+        <span class="w-2 h-2 rotate-45 bg-[#ff3b00] inline-block"></span>
+        <span>UNIDENTIFIED SIGNAL // UAP-00</span>
+      </div>
+      <h2 class="text-xl font-semibold tracking-tight text-neutral-900">攔截到不明飛行訊號</h2>
+      <p class="text-sm text-neutral-600 leading-relaxed mt-3">
+        這是一個隱藏的軌道彩蛋入口！未來可以放進你的實驗性 Side Project、設計筆記、AI 小工具，或是只有發現它的人才能解鎖的特別履歷／聯絡方式。
+      </p>
+      <div class="mt-5 p-3 bg-neutral-50 border border-dashed border-neutral-300 font-mono-tech text-[11px] text-neutral-500">
+        STATUS: STANDBY FOR FUTURE PAYLOAD
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST NOTIFICATION -->
   <div id="toast" class="fixed bottom-6 right-6 z-50 bg-neutral-900 text-white font-mono-tech text-xs px-4 py-2.5 opacity-0 pointer-events-none transition-opacity duration-200">
-    SIGNAL COPIED TO CLIPBOARD
+    SIGNAL COPIED
   </div>
 
   <script>
-    // --- MISSION DATA (Grounded in Elvin's Real Design Background + Portfolio Placeholders) ---
+    // --- HELPER: CLEAN ARCHITECTURAL PROJECT THUMBNAILS (Swap with real coverImage URL anytime) ---
+    function createMockPreview(tag, title, accent, variant) {
+      if (variant === 'grid') {
+        return `
+          <div class="w-full h-full bg-neutral-100 p-3 flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between font-mono-tech text-[9px] text-neutral-500">
+              <span>${tag}</span>
+              <span class="w-2 h-2 rounded-full" style="background:${accent}"></span>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5 my-1">
+              <div class="h-10 bg-white border border-neutral-300"></div>
+              <div class="h-10 bg-neutral-900"></div>
+              <div class="h-10 bg-white border border-neutral-300"></div>
+            </div>
+            <div class="font-mono-tech text-[9px] text-neutral-700 truncate">${title}</div>
+          </div>`;
+      }
+      if (variant === 'blueprint') {
+        return `
+          <div class="w-full h-full bg-neutral-900 text-white p-3 flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between font-mono-tech text-[9px] text-neutral-400">
+              <span>${tag}</span>
+              <span>SERVICE FLOW</span>
+            </div>
+            <div class="flex items-center gap-2 my-1">
+              <div class="h-6 flex-1 border border-neutral-600 flex items-center justify-center font-mono-tech text-[8px]">TOUCHPOINT</div>
+              <span style="color:${accent}">→</span>
+              <div class="h-6 flex-1 border border-white flex items-center justify-center font-mono-tech text-[8px]">SYSTEM</div>
+            </div>
+            <div class="font-mono-tech text-[9px] text-neutral-300 truncate">${title}</div>
+          </div>`;
+      }
+      return `
+        <div class="w-full h-full bg-white p-3 flex flex-col justify-between relative overflow-hidden" style="background-image: radial-gradient(#e5e5e5 1px, transparent 1px); background-size: 12px 12px;">
+          <div class="flex items-center justify-between font-mono-tech text-[9px] text-neutral-500">
+            <span>${tag}</span>
+            <span class="px-1.5 py-0.5 text-white text-[8px]" style="background:${accent}">PREVIEW</span>
+          </div>
+          <div class="font-editorial italic text-xl text-neutral-900 truncate">${title}</div>
+          <div class="h-1 w-full bg-neutral-200"><div class="h-full w-2/3" style="background:${accent}"></div></div>
+        </div>`;
+    }
+
+    // --- MISSION DATA ---
+    // Tip: Add coverImage: 'https://...' to replace the architectural preview with a real screenshot!
     const MISSIONS = [
       {
         id: 'm1',
         code: 'M-01',
+        featured: true,
         title: 'ASUS Next-Gen Ecosystem UX',
         category: 'PRODUCT UX',
         org: 'ASUS · Taipei',
@@ -451,12 +503,14 @@
         brief: '主導跨裝置使用體驗與核心工作流程優化，整合硬體互動與軟體介面的一致性，降低多工情境下的認知負荷。',
         approach: '透過使用者訪談與脈絡洞察重構資訊架構，建立可擴展的設計系統元件與微互動規範。',
         impact: '顯著提升跨裝置任務完成率，並建立團隊統一的體驗評估指標。',
-        // Orbital parameters (semi-major a, semi-minor b, initial angle rad, speed, size px, planet style)
-        orbitRx: 155,
-        orbitRy: 110,
-        angle: 0.55,
-        speed: 0.0022,
-        size: 54,
+        caseStudyUrl: 'https://www.notion.so',
+        coverImage: '',
+        previewVariant: 'grid',
+        orbitRx: 165,
+        orbitRy: 115,
+        angle: 0.45,
+        speed: 0.00085,
+        size: 66,
         style: 'radial-gradient(circle at 32% 30%, #ffffff 0%, #d4d4d4 52%, #171717 100%)',
         hasRing: true,
         accentDot: '#ff3b00'
@@ -464,6 +518,7 @@
       {
         id: 'm2',
         code: 'M-02',
+        featured: true,
         title: 'Ministry of Justice Service Lab',
         category: 'SERVICE DESIGN',
         org: 'RCA × Ministry of Justice · UK',
@@ -474,18 +529,22 @@
         brief: '於英國皇家藝術學院（RCA）期間與英國司法部合作，重新梳理公共服務接觸點與利害關係人流程。',
         approach: '運用服務藍圖（Service Blueprint）與實地參與式工作坊，識別第一線人員與民眾間的資訊斷點。',
         impact: '產出可落地的服務原型與政策設計建議，獲合作單位高度肯定。',
-        orbitRx: 265,
-        orbitRy: 175,
-        angle: 2.35,
-        speed: 0.0015,
-        size: 68,
+        caseStudyUrl: 'https://www.figma.com',
+        coverImage: '',
+        previewVariant: 'blueprint',
+        orbitRx: 285,
+        orbitRy: 185,
+        angle: 2.45,
+        speed: 0.00085,
+        size: 64,
         style: 'conic-gradient(from 210deg at 45% 45%, #0a0a0a 0deg, #525252 110deg, #f5f5f5 240deg, #0a0a0a 360deg)',
         hasRing: false,
-        accentDot: '#0a0a0a'
+        accentDot: '#ff3b00'
       },
       {
         id: 'm3',
         code: 'M-03',
+        featured: false,
         title: 'Museum Spatial Archive',
         category: 'SERVICE DESIGN',
         org: 'RCA Graduation Project · London',
@@ -496,11 +555,14 @@
         brief: 'RCA 畢業製作專案，與博物館合作探索實體展覽與數位典藏之間的敘事橋樑。',
         approach: '結合空間動線觀察與互動原型測試，設計低干擾、高沉浸感的觀展引導體驗。',
         impact: '展覽測試期間延長觀展者平均停留時間，並入選學院年度重點展示。',
-        orbitRx: 385,
-        orbitRy: 240,
+        caseStudyUrl: 'https://www.behance.net',
+        coverImage: '',
+        previewVariant: 'editorial',
+        orbitRx: 405,
+        orbitRy: 250,
         angle: 5.55,
-        speed: 0.0011,
-        size: 60,
+        speed: 0.00085,
+        size: 48,
         style: 'radial-gradient(circle at 70% 25%, #fff5f2 0%, #ff3b00 48%, #7a1c00 100%)',
         hasRing: true,
         accentDot: '#ff3b00'
@@ -508,6 +570,7 @@
       {
         id: 'm4',
         code: 'M-04',
+        featured: false,
         title: 'Cross-Cultural Mobility Study',
         category: 'RESEARCH',
         org: 'Taipei · Shanghai · London',
@@ -518,11 +581,14 @@
         brief: '跨台灣、上海與英國三地的移動與數位生活習慣研究，比較不同文化語境下的產品心智模型。',
         approach: '進行 24 場深度脈絡訪查與日記研究法（Diary Study），提煉跨市場在地化設計準則。',
         impact: '成為產品團隊進入新市場時的核心研究參考框架。',
-        orbitRx: 385,
-        orbitRy: 240,
-        angle: 3.8,
-        speed: 0.0011,
-        size: 44,
+        caseStudyUrl: 'https://medium.com',
+        coverImage: '',
+        previewVariant: 'editorial',
+        orbitRx: 405,
+        orbitRy: 250,
+        angle: 3.65,
+        speed: 0.00085,
+        size: 42,
         style: 'radial-gradient(circle at 35% 35%, #fafafa 0%, #a3a3a3 65%, #404040 100%)',
         hasRing: false,
         accentDot: '#0a0a0a'
@@ -530,6 +596,7 @@
       {
         id: 'm5',
         code: 'M-05',
+        featured: false,
         title: 'Enterprise AI Workflow Tool',
         category: 'PRODUCT UX',
         org: 'Product Concept · Taipei',
@@ -540,18 +607,22 @@
         brief: '為專業工作者設計的 AI 輔助決策介面，重點在於「可解釋性」與「人機協作控制感」。',
         approach: '設計漸進式揭露（Progressive Disclosure）與即時信心度回饋，避免黑箱焦慮。',
         impact: '在內部可用性測試中，新手上手時間縮短 40%。',
-        orbitRx: 265,
-        orbitRy: 175,
-        angle: 0.1,
-        speed: 0.0015,
-        size: 48,
+        caseStudyUrl: 'https://www.figma.com',
+        coverImage: '',
+        previewVariant: 'grid',
+        orbitRx: 285,
+        orbitRy: 185,
+        angle: 4.65,
+        speed: 0.00085,
+        size: 44,
         style: 'repeating-linear-gradient(135deg, #f5f5f5, #f5f5f5 4px, #171717 4px, #171717 5px)',
         hasRing: false,
-        accentDot: '#ff3b00'
+        accentDot: '#0a0a0a'
       },
       {
         id: 'm6',
         code: 'M-06',
+        featured: false,
         title: 'Design Mentorship & Lab',
         category: 'ARCHIVE',
         org: 'Design Education Initiative',
@@ -562,11 +633,14 @@
         brief: '長期擔任設計導師，整理 30+ 專案實戰經驗為作品集評圖、研究方法與職涯引導模組。',
         approach: '以太空任務簡報（Mission Debrief）為隱喻，幫助新銳設計師結構化表達設計決策。',
         impact: '已協助多位學員完成作品集重塑並順利進入理想設計團隊。',
-        orbitRx: 510,
-        orbitRy: 300,
+        caseStudyUrl: 'https://www.notion.so',
+        coverImage: '',
+        previewVariant: 'blueprint',
+        orbitRx: 525,
+        orbitRy: 305,
         angle: 1.45,
-        speed: 0.0008,
-        size: 40,
+        speed: 0.00085,
+        size: 36,
         style: 'radial-gradient(circle at 40% 40%, #ffffff 0%, #e5e5e5 60%, #737373 100%)',
         hasRing: true,
         accentDot: '#0a0a0a'
@@ -577,18 +651,20 @@
 
     // --- STATE ---
     let state = {
-      view: 'orbital', // 'orbital' | 'manifest'
+      view: 'orbital',
       activeCategory: 'ALL',
       orbitRunning: true,
-      hoveredId: null,
-      selectedId: null
+      lockedId: null,
+      selectedId: null,
+      uapProgress: 0.12,
+      uapLane: 0,
+      uapPaused: false
     };
 
     // --- DOM REFS ---
     const planetsStage = document.getElementById('planets-stage');
     const orbitalView = document.getElementById('orbital-view');
     const manifestView = document.getElementById('manifest-view');
-    const hoverHud = document.getElementById('hover-hud');
     const cursorV = document.getElementById('cursor-v');
     const cursorH = document.getElementById('cursor-h');
     const telemetryCoords = document.getElementById('telemetry-coords');
@@ -601,20 +677,28 @@
       desktopContainer.innerHTML = '';
       mobileContainer.innerHTML = '';
 
+      const activeCount = state.activeCategory === 'ALL'
+        ? MISSIONS.length
+        : MISSIONS.filter(m => m.category === state.activeCategory).length;
+      const curLabel = document.getElementById('filter-current-label');
+      if (curLabel) curLabel.textContent = `${state.activeCategory} [0${activeCount}]`;
+
+      const menuBox = document.createElement('div');
+      menuBox.className = 'bg-white border border-neutral-900 shadow-md p-2 flex flex-col gap-1';
+      desktopContainer.appendChild(menuBox);
+
       CATEGORIES.forEach(cat => {
         const count = cat === 'ALL'
           ? MISSIONS.length
           : MISSIONS.filter(m => m.category === cat).length;
         const isActive = state.activeCategory === cat;
 
-        // Desktop stacked list (like reference image top-right)
         const btnD = document.createElement('button');
-        btnD.className = `flex items-baseline gap-1.5 cursor-pointer transition-colors ${isActive ? 'text-neutral-950 font-medium' : 'text-neutral-400 hover:text-neutral-800'}`;
-        btnD.innerHTML = `<span class="font-mono-tech text-[9px] w-5 text-right">${isActive ? `[0${count}]` : ''}</span><span>${cat}</span>`;
+        btnD.className = `w-full px-2 py-1 flex items-center justify-between text-left cursor-pointer transition-colors ${isActive ? 'bg-neutral-950 text-white font-medium' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950'}`;
+        btnD.innerHTML = `<span>${cat}</span><span class="font-mono-tech text-[9px] ${isActive ? 'text-[#ff3b00]' : 'text-neutral-400'}">[0${count}]</span>`;
         btnD.addEventListener('click', () => setCategory(cat));
-        desktopContainer.appendChild(btnD);
+        menuBox.appendChild(btnD);
 
-        // Mobile horizontal chip
         const btnM = document.createElement('button');
         btnM.className = `shrink-0 font-mono-tech px-2 py-0.5 border cursor-pointer ${isActive ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-200 text-neutral-500'}`;
         btnM.textContent = `${cat} (${count})`;
@@ -629,6 +713,8 @@
       renderCategoryFilters();
       updatePlanetFilterClasses();
       renderManifest();
+
+
     }
 
     // --- CREATE PLANET DOM NODES ---
@@ -637,42 +723,41 @@
       planetsStage.innerHTML = '';
       MISSIONS.forEach(m => {
         const node = document.createElement('div');
-        node.className = 'planet-node group';
+        node.className = `planet-node group ${m.id === state.lockedId ? 'locked' : ''}`;
         node.dataset.id = m.id;
 
         const ringHtml = m.hasRing
           ? `<div class="absolute inset-[-10px] rounded-full border border-neutral-400/70 pointer-events-none" style="transform: rotate(-22deg) scaleY(0.38);"></div>`
           : '';
 
+        const featuredBadge = m.featured
+          ? `<span class="font-mono-tech text-[8px] px-1 py-0.2 bg-[#ff3b00] text-white tracking-wider">★</span>`
+          : '';
+
         node.innerHTML = `
-          <div class="relative flex flex-col items-center">
+          <div class="relative flex items-center justify-center">
             <div class="target-bracket">
               <svg viewBox="0 0 100 100" class="w-full h-full overflow-visible">
-                <path d="M 15 0 L 0 0 L 0 15" fill="none" stroke="#ff3b00" stroke-width="1.8"/>
-                <path d="M 85 0 L 100 0 L 100 15" fill="none" stroke="#ff3b00" stroke-width="1.8"/>
-                <path d="M 0 85 L 0 100 L 15 100" fill="none" stroke="#ff3b00" stroke-width="1.8"/>
-                <path d="M 85 100 L 100 100 L 100 85" fill="none" stroke="#ff3b00" stroke-width="1.8"/>
+                <path d="M 18 0 L 0 0 L 0 18" fill="none" stroke="#ff3b00" stroke-width="2"/>
+                <path d="M 82 0 L 100 0 L 100 18" fill="none" stroke="#ff3b00" stroke-width="2"/>
+                <path d="M 0 82 L 0 100 L 18 100" fill="none" stroke="#ff3b00" stroke-width="2"/>
+                <path d="M 82 100 L 100 100 L 100 82" fill="none" stroke="#ff3b00" stroke-width="2"/>
               </svg>
             </div>
             <div class="planet-sphere border border-neutral-900/20 shadow-sm flex items-center justify-center" style="width:${m.size}px; height:${m.size}px; background:${m.style};">
               ${ringHtml}
             </div>
-            <div class="mt-2 px-1.5 py-0.5 bg-white/90 border border-neutral-200/90 backdrop-blur-xs flex items-center gap-1.5 whitespace-nowrap shadow-2xs">
-              <span class="w-1.5 h-1.5 rounded-full" style="background:${m.accentDot};"></span>
+            <div class="planet-label absolute top-full left-1/2 -translate-x-1/2 mt-[18px] px-1.5 py-0.5 bg-white/95 border ${m.featured ? 'border-neutral-900' : 'border-neutral-200/90'} backdrop-blur-xs flex items-center gap-1.5 whitespace-nowrap shadow-2xs">
+              ${featuredBadge}
               <span class="font-mono-tech text-[9px] text-neutral-500">${m.code}</span>
               <span class="text-[11px] font-medium text-neutral-900">${m.title}</span>
+              <span class="hidden group-hover:inline-block font-mono-tech text-[9px] text-[#ff3b00] ml-1 pl-1.5 border-l border-neutral-200">EXPLORE →</span>
             </div>
           </div>
         `;
 
-        node.addEventListener('mouseenter', () => {
-          state.hoveredId = m.id;
-          showHud(m);
-        });
-        node.addEventListener('mouseleave', () => {
-          state.hoveredId = null;
-          hideHud();
-        });
+        node.addEventListener('mouseenter', () => lockMission(m.id));
+        node.addEventListener('mouseleave', () => unlockMission());
         node.addEventListener('click', () => openDrawer(m.id));
 
         planetsStage.appendChild(node);
@@ -689,23 +774,115 @@
       });
     }
 
+    // --- LOCK TARGET & UPDATE PREVIEW CARD WITH IMAGE ---
+    function lockMission(id) {
+      state.lockedId = id;
+      MISSIONS.forEach(m => {
+        if (planetEls[m.id]) {
+          planetEls[m.id].classList.toggle('locked', m.id === id);
+        }
+      });
+
+      const m = MISSIONS.find(x => x.id === id);
+      if (!m) return;
+
+      const thumbEl = document.getElementById('hud-thumb');
+      if (m.coverImage) {
+        thumbEl.innerHTML = `<img src="${m.coverImage}" alt="${m.title}" class="w-full h-full object-cover" />`;
+      } else {
+        thumbEl.innerHTML = createMockPreview(m.category, m.title, m.accentDot, m.previewVariant);
+      }
+
+      document.getElementById('hud-code').textContent = `${m.code} // ${m.featured ? '★ FEATURED' : m.orbitLabel}`;
+      document.getElementById('hud-year').textContent = m.year;
+      document.getElementById('hud-title').textContent = m.title;
+      document.getElementById('hud-subtitle').textContent = m.impact;
+      document.getElementById('hud-role').textContent = m.role;
+      const hud = document.getElementById('hover-hud');
+      const stageRect = orbitalView.getBoundingClientRect();
+      const planetEl = planetEls[id];
+      if (planetEl && stageRect.width > 0) {
+        const pRect = planetEl.getBoundingClientRect();
+        const labelEl = planetEl.querySelector('.planet-label');
+        const lRect = labelEl ? labelEl.getBoundingClientRect() : pRect;
+        const relLeft = Math.min(pRect.left - 12, lRect.left) - stageRect.left;
+        const relRight = Math.max(pRect.right + 12, lRect.right) - stageRect.left;
+        const relTop = (pRect.top - 12) - stageRect.top;
+        const cardW = 288;
+        const cardH = 250;
+        const gap = 12;
+
+        let left = (relRight + gap + cardW < stageRect.width - 16)
+          ? relRight + gap
+          : Math.max(16, relLeft - gap - cardW);
+
+        let top = Math.min(Math.max(16, relTop), Math.max(16, stageRect.height - cardH - 16));
+
+        hud.style.left = `${left}px`;
+        hud.style.top = `${top}px`;
+      }
+      hud.classList.remove('opacity-0');
+    }
+
+    function unlockMission() {
+      state.lockedId = null;
+      MISSIONS.forEach(m => {
+        if (planetEls[m.id]) {
+          planetEls[m.id].classList.remove('locked');
+        }
+      });
+      const hud = document.getElementById('hover-hud');
+      hud.classList.add('opacity-0');
+    }
+
     // --- ORBITAL ANIMATION LOOP ---
     let rafId = null;
+    function syncOrbitalRings(cx, cy, scaleX, scaleY) {
+      const rings = [
+        { id: 'ring-1', rx: 165, ry: 115 },
+        { id: 'ring-2', rx: 285, ry: 185 },
+        { id: 'ring-3', rx: 405, ry: 250 },
+        { id: 'ring-4', rx: 525, ry: 305 }
+      ];
+      rings.forEach(r => {
+        const el = document.getElementById(r.id);
+        if (el) {
+          el.setAttribute('cx', cx);
+          el.setAttribute('cy', cy);
+          el.setAttribute('rx', r.rx * scaleX);
+          el.setAttribute('ry', r.ry * scaleY);
+        }
+      });
+      const glow = document.getElementById('svg-glow');
+      if (glow) {
+        glow.setAttribute('cx', cx);
+        glow.setAttribute('cy', cy);
+        glow.setAttribute('r', 220 * Math.min(scaleX, scaleY));
+      }
+      const degN = document.getElementById('deg-n');
+      const degE = document.getElementById('deg-e');
+      const degW = document.getElementById('deg-w');
+      if (degN) { degN.setAttribute('x', cx + 6); degN.setAttribute('y', cy - 250 * scaleY - 6); }
+      if (degE) { degE.setAttribute('x', cx + 405 * scaleX + 8); degE.setAttribute('y', cy + 3); }
+      if (degW) { degW.setAttribute('x', cx - 405 * scaleX - 42); degW.setAttribute('y', cy + 3); }
+    }
+
     function animateOrbits() {
       const rect = planetsStage.getBoundingClientRect();
       const cx = rect.width / 2;
-      const cy = rect.height * 0.485;
-      // Responsive scale factor so planets stay inside narrow Canvas panels too
-      const scaleX = Math.min(1, rect.width / 1180);
-      const scaleY = Math.min(1, rect.height / 660);
-      const scale = Math.max(0.45, Math.min(scaleX, scaleY));
+      const cy = rect.height * 0.5;
+      // Independent X/Y scaling spreads the elliptical orbits gracefully across wide screens without clipping top/bottom
+      const scaleX = Math.min(1.38, Math.max(0.38, (rect.width - 260) / (525 * 2)));
+      const scaleY = Math.min(1.05, Math.max(0.38, (rect.height - 135) / (305 * 2)));
+
+      syncOrbitalRings(cx, cy, scaleX, scaleY);
 
       MISSIONS.forEach(m => {
-        if (state.orbitRunning && state.hoveredId !== m.id) {
+        if (state.orbitRunning && !state.lockedId) {
           m.angle += m.speed;
         }
-        const x = cx + Math.cos(m.angle) * (m.orbitRx * scale);
-        const y = cy + Math.sin(m.angle) * (m.orbitRy * scale);
+        const x = cx + Math.cos(m.angle) * (m.orbitRx * scaleX);
+        const y = cy + Math.sin(m.angle) * (m.orbitRy * scaleY);
         const el = planetEls[m.id];
         if (el) {
           el.style.left = `${x}px`;
@@ -713,21 +890,29 @@
         }
       });
 
+      // UAP gentle diagonal flyby across orbital view
+      if (!state.uapPaused && state.view === 'orbital') {
+        state.uapProgress += 0.0014;
+        if (state.uapProgress > 1.25) {
+          state.uapProgress = -0.18;
+          state.uapLane = (state.uapLane + 1) % 3;
+        }
+        const uapEl = document.getElementById('uap-craft');
+        if (uapEl) {
+          const lanes = [
+            { y0: 0.18, y1: 0.72 },
+            { y0: 0.76, y1: 0.24 },
+            { y0: 0.30, y1: 0.42 }
+          ];
+          const lane = lanes[state.uapLane];
+          const ux = state.uapProgress * rect.width;
+          const uy = (lane.y0 + (lane.y1 - lane.y0) * state.uapProgress) * rect.height + Math.sin(state.uapProgress * 10) * 14;
+          uapEl.style.left = `${ux}px`;
+          uapEl.style.top = `${uy}px`;
+        }
+      }
+
       rafId = requestAnimationFrame(animateOrbits);
-    }
-
-    // --- HOVER HUD ---
-    function showHud(m) {
-      document.getElementById('hud-code').textContent = `${m.code} // ${m.orbitLabel}`;
-      document.getElementById('hud-year').textContent = m.year;
-      document.getElementById('hud-title').textContent = m.title;
-      document.getElementById('hud-subtitle').textContent = m.brief;
-      document.getElementById('hud-role').textContent = m.role;
-      hoverHud.classList.remove('opacity-0', 'translate-y-2');
-    }
-
-    function hideHud() {
-      hoverHud.classList.add('opacity-0', 'translate-y-2');
     }
 
     // --- MANIFEST VIEW ---
@@ -748,7 +933,10 @@
             <span class="font-mono-tech text-xs text-neutral-400 w-10">${m.code}</span>
             <span class="w-4 h-4 rounded-full border border-neutral-300 shrink-0" style="background:${m.style};"></span>
             <div>
-              <div class="text-base font-medium text-neutral-900 group-hover:text-[#ff3b00] transition-colors">${m.title}</div>
+              <div class="text-base font-medium text-neutral-900 group-hover:text-[#ff3b00] transition-colors flex items-center gap-2">
+                <span>${m.title}</span>
+                ${m.featured ? '<span class="font-mono-tech text-[9px] px-1.5 py-0.5 bg-[#ff3b00] text-white">FEATURED</span>' : ''}
+              </div>
               <div class="text-xs text-neutral-500">${m.org}</div>
             </div>
           </div>
@@ -763,7 +951,7 @@
       });
     }
 
-    // --- VIEW SWITCHING (ORBITAL vs MANIFEST) ---
+    // --- VIEW SWITCHING ---
     function switchView(view) {
       state.view = view;
       const btnO = document.getElementById('btn-view-orbital');
@@ -794,16 +982,25 @@
 
       document.getElementById('drawer-code').textContent = `MISSION ${m.code} // ${m.year}`;
       document.getElementById('drawer-planet-preview').style.background = m.style;
-      document.getElementById('drawer-category').textContent = m.category;
+      document.getElementById('drawer-category').textContent = m.featured ? `${m.category} · ★ FEATURED` : m.category;
       document.getElementById('drawer-title').textContent = m.title;
       document.getElementById('drawer-org').textContent = `${m.org} · ${m.year}`;
       document.getElementById('drawer-role').textContent = m.role;
       document.getElementById('drawer-orbit').textContent = m.orbitLabel;
       document.getElementById('drawer-status').textContent = m.status;
-      document.getElementById('drawer-visual-label').textContent = m.title;
       document.getElementById('drawer-brief').textContent = m.brief;
       document.getElementById('drawer-approach').textContent = m.approach;
       document.getElementById('drawer-impact').textContent = m.impact;
+
+      const visualBox = document.getElementById('drawer-visual-box');
+      if (m.coverImage) {
+        visualBox.innerHTML = `<img src="${m.coverImage}" alt="${m.title}" class="w-full h-full object-cover" />`;
+      } else {
+        visualBox.innerHTML = createMockPreview(m.category, m.title, m.accentDot, m.previewVariant);
+      }
+
+      const linkEl = document.getElementById('drawer-case-link');
+      linkEl.href = m.caseStudyUrl || '#';
 
       drawerBackdrop.classList.remove('hidden');
       requestAnimationFrame(() => {
@@ -825,15 +1022,6 @@
       openDrawer(MISSIONS[nextIdx].id);
     }
 
-    // --- RADAR PING EFFECT ---
-    function triggerPing() {
-      if (state.view !== 'orbital') switchView('orbital');
-      const wave = document.createElement('div');
-      wave.className = 'ping-wave';
-      orbitalView.appendChild(wave);
-      setTimeout(() => wave.remove(), 1650);
-    }
-
     // --- LIVE CLOCK & CURSOR TELEMETRY ---
     function updateClock() {
       const now = new Date();
@@ -853,6 +1041,14 @@
 
     // --- ABOUT MODAL & COPY ---
     const aboutModal = document.getElementById('about-modal');
+    function openAboutModal() {
+      aboutModal.classList.remove('hidden');
+      aboutModal.classList.add('flex');
+    }
+    function closeAboutModal() {
+      aboutModal.classList.add('hidden');
+      aboutModal.classList.remove('flex');
+    }
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
@@ -867,27 +1063,20 @@
       state.orbitRunning = !state.orbitRunning;
       e.target.textContent = state.orbitRunning ? '❚❚ PAUSE ORBIT' : '▶ RESUME ORBIT';
     });
-    document.getElementById('btn-ping').addEventListener('click', triggerPing);
-    document.getElementById('mission-core-btn').addEventListener('click', triggerPing);
+
+    // Central core & top-right About both open personal profile
+    document.getElementById('mission-core-btn').addEventListener('click', openAboutModal);
+    document.getElementById('btn-about').addEventListener('click', openAboutModal);
+    document.getElementById('btn-close-about').addEventListener('click', closeAboutModal);
+    aboutModal.addEventListener('click', (e) => {
+      if (e.target === aboutModal) closeAboutModal();
+    });
+
+
     document.getElementById('btn-close-drawer').addEventListener('click', closeDrawer);
     drawerBackdrop.addEventListener('click', closeDrawer);
     document.getElementById('btn-prev-mission').addEventListener('click', () => cycleMission(-1));
     document.getElementById('btn-next-mission').addEventListener('click', () => cycleMission(1));
-
-    document.getElementById('btn-about').addEventListener('click', () => {
-      aboutModal.classList.remove('hidden');
-      aboutModal.classList.add('flex');
-    });
-    document.getElementById('btn-close-about').addEventListener('click', () => {
-      aboutModal.classList.add('hidden');
-      aboutModal.classList.remove('flex');
-    });
-    aboutModal.addEventListener('click', (e) => {
-      if (e.target === aboutModal) {
-        aboutModal.classList.add('hidden');
-        aboutModal.classList.remove('flex');
-      }
-    });
 
     document.getElementById('btn-copy-email').addEventListener('click', () => {
       const email = 'hello@elvin.space';
@@ -908,14 +1097,28 @@
       showToast('SIGNAL COPIED: ' + text);
     }
 
+    // UAP Interactions
+    const uapCraft = document.getElementById('uap-craft');
+    const uapModal = document.getElementById('uap-modal');
+    function openUapModal() {
+      uapModal.classList.remove('hidden');
+      uapModal.classList.add('flex');
+    }
+    function closeUapModal() {
+      uapModal.classList.add('hidden');
+      uapModal.classList.remove('flex');
+    }
+    uapCraft.addEventListener('mouseenter', () => { state.uapPaused = true; });
+    uapCraft.addEventListener('mouseleave', () => { state.uapPaused = false; });
+    uapCraft.addEventListener('click', openUapModal);
+    document.getElementById('btn-close-uap').addEventListener('click', closeUapModal);
+    uapModal.addEventListener('click', (e) => { if (e.target === uapModal) closeUapModal(); });
+
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && !aboutModal.classList.contains('flex')) {
-        e.preventDefault();
-        triggerPing();
-      } else if (e.code === 'Escape') {
+      if (e.code === 'Escape') {
         closeDrawer();
-        aboutModal.classList.add('hidden');
-        aboutModal.classList.remove('flex');
+        closeAboutModal();
+        closeUapModal();
       }
     });
 
