@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ELVIN — Space Mission Portfolio</title>
+  <title>ELVIN — Space Mission Control</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #ffffff;
@@ -180,11 +180,11 @@
       <!-- Center View Switcher -->
       <div class="col-span-2 md:col-span-4 order-3 md:order-2 flex justify-start md:justify-center items-center gap-3 pt-1 md:pt-0">
         <button id="btn-view-orbital" class="view-toggle-btn font-medium text-neutral-900 border-b border-neutral-900 pb-0.5 transition-colors cursor-pointer">
-          星圖軌道 ORBITAL
+          星圖 ORBITAL
         </button>
         <span class="text-neutral-300">|</span>
         <button id="btn-view-manifest" class="view-toggle-btn text-neutral-400 hover:text-neutral-900 pb-0.5 transition-colors cursor-pointer">
-          任務清單 MANIFEST
+          作品清單 INDEX
         </button>
       </div>
 
@@ -221,7 +221,7 @@
 
       <!-- Corner Telemetry Readouts -->
       <div class="absolute top-3.5 left-4 sm:left-8 z-10 pointer-events-none font-mono-tech text-[10px] text-neutral-400 space-y-0.5">
-        <div>SECTOR: <span id="telemetry-sector" class="text-neutral-800">SOL-SYSTEM / ALL</span></div>
+        <div>CATEGORY: <span id="telemetry-sector" class="text-neutral-800">ALL</span></div>
         <div>CURSOR: <span id="telemetry-coords" class="text-neutral-800">AZ 000.0° · EL +00.0°</span></div>
       </div>
 
@@ -254,7 +254,7 @@
       <button id="mission-core-btn" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 group flex flex-col items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white border border-neutral-900 shadow-[0_0_0_6px_rgba(255,255,255,0.88)] hover:border-[#ff3b00] hover:scale-105 transition-all cursor-pointer text-center px-2" title="點擊開啟 Elvin 個人簡介">
         <span class="font-mono-tech text-[8px] text-neutral-400 group-hover:text-[#ff3b00] tracking-widest">ELVIN'S</span>
         <span class="font-medium text-xs tracking-tight mt-0.5">UNIVERSE</span>
-        <span class="font-mono-tech text-[8px] text-neutral-400 mt-1 group-hover:text-neutral-700">ABOUT →</span>
+        <span class="font-mono-tech text-[8px] text-neutral-400 mt-1 group-hover:text-neutral-700">ABOUT ME →</span>
       </button>
 
       <!-- Scattered Interactive Planets Container -->
@@ -292,8 +292,8 @@
     <!-- MANIFEST VIEW (Scalable Archive for All Projects) -->
     <section id="manifest-view" class="hidden relative z-20 w-full max-w-[1400px] mx-auto px-4 sm:px-8 py-8 flex-1 overflow-y-auto">
       <div class="flex items-baseline justify-between border-b border-neutral-900 pb-3 mb-4">
-        <h2 class="font-mono-tech text-xs tracking-widest uppercase text-neutral-900">MISSION MANIFEST / ALL EXPLORATIONS</h2>
-        <span id="manifest-count" class="font-mono-tech text-xs text-neutral-500">06 MISSIONS LOGGED</span>
+        <h2 class="font-mono-tech text-xs tracking-widest uppercase text-neutral-900">PROJECT INDEX / ALL WORKS</h2>
+        <span id="manifest-count" class="font-mono-tech text-xs text-neutral-500">06 PROJECTS</span>
       </div>
       <div id="manifest-list" class="divide-y divide-neutral-200"></div>
     </section>
@@ -303,11 +303,11 @@
       <div class="flex items-center justify-between font-mono-tech text-[9px] text-neutral-400 uppercase tracking-wider mb-0.5">
         <span>SPACE MISSION ARCHIVE · 2021–2026</span>
         <span class="hidden sm:inline">HOVER PLANET TO PREVIEW · CLICK TO LAND &amp; VIEW CASE STUDY</span>
-        <span>VER 2.0</span>
+        <span>VER 1.2</span>
       </div>
-      <div class="hero-wordmark font-medium text-neutral-950 flex items-baseline justify-between w-full overflow-hidden">
-        <span><span class="hero-swash-letter">E</span>lvin</span>
-        <span class="text-neutral-300 font-editorial italic font-normal hidden sm:inline" style="font-size: 0.65em;">Mission Control</span>
+      <div id="footer-wordmark-row" class="hero-wordmark font-normal text-neutral-950 flex items-baseline justify-between w-full overflow-hidden">
+        <span style="font-family: 'Space Mono', monospace; letter-spacing: -0.05em;">Elvin</span>
+        <span class="text-neutral-300 hidden sm:inline" style="font-size: 0.56em; font-family: 'Space Mono', monospace; letter-spacing: -0.03em;">Mission Control</span>
       </div>
     </footer>
 
@@ -345,7 +345,7 @@
           <div id="drawer-role" class="text-neutral-900 mt-0.5 font-medium">Lead UX</div>
         </div>
         <div>
-          <div class="text-neutral-400 text-[10px]">ORBIT / SECTOR</div>
+          <div class="text-neutral-400 text-[10px]">YEAR</div>
           <div id="drawer-orbit" class="text-neutral-900 mt-0.5 font-medium">1.1 AU</div>
         </div>
         <div>
@@ -394,7 +394,7 @@
   <div id="about-modal" class="fixed inset-0 bg-neutral-950/25 backdrop-blur-[2px] z-50 hidden items-center justify-center p-4">
     <div class="bg-white border border-neutral-900 max-w-lg w-full p-6 sm:p-8 relative shadow-xl">
       <button id="btn-close-about" class="absolute top-5 right-5 font-mono-tech text-xs px-2 py-1 border border-neutral-300 hover:border-neutral-900 cursor-pointer">✕ CLOSE</button>
-      <div class="font-mono-tech text-[10px] text-[#ff3b00] tracking-widest mb-2">ASTRONAUT DOSSIER // ELVIN</div>
+      <div class="font-mono-tech text-[10px] text-[#ff3b00] tracking-widest mb-2">ABOUT // ELVIN</div>
       <h2 class="text-2xl font-semibold tracking-tight text-neutral-900">Elvin — UX &amp; Product Designer</h2>
       <p class="text-sm text-neutral-600 leading-relaxed mt-3">
         現任於 ASUS 擔任 UX Designer，擁有超過 4 年的產品設計、服務設計與使用者研究經驗，累積參與 30+ 跨領域設計專案。畢業於英國皇家藝術學院（Royal College of Art, RCA），曾於台北、上海與倫敦進行跨文化設計協作，並擔任設計導師（Design Mentor）。
@@ -511,7 +511,7 @@
         angle: 0.45,
         speed: 0.00085,
         size: 66,
-        style: 'radial-gradient(circle at 32% 30%, #ffffff 0%, #d4d4d4 52%, #171717 100%)',
+        style: 'radial-gradient(circle at 32% 28%, #fff1ec 0%, #ff3b00 52%, #8f1d00 100%)',
         hasRing: true,
         accentDot: '#ff3b00'
       },
@@ -537,7 +537,7 @@
         angle: 2.45,
         speed: 0.00085,
         size: 64,
-        style: 'conic-gradient(from 210deg at 45% 45%, #0a0a0a 0deg, #525252 110deg, #f5f5f5 240deg, #0a0a0a 360deg)',
+        style: 'radial-gradient(circle at 32% 28%, #a3a3a3 0%, #262626 48%, #050505 100%)',
         hasRing: false,
         accentDot: '#ff3b00'
       },
@@ -563,9 +563,9 @@
         angle: 5.55,
         speed: 0.00085,
         size: 48,
-        style: 'radial-gradient(circle at 70% 25%, #fff5f2 0%, #ff3b00 48%, #7a1c00 100%)',
+        style: 'radial-gradient(circle at 35% 30%, #fafaf9 0%, #d6d3d1 58%, #78716c 100%)',
         hasRing: true,
-        accentDot: '#ff3b00'
+        accentDot: '#78716c'
       },
       {
         id: 'm4',
@@ -709,7 +709,7 @@
 
     function setCategory(cat) {
       state.activeCategory = cat;
-      telemetrySector.textContent = `SOL-SYSTEM / ${cat}`;
+      telemetrySector.textContent = cat;
       renderCategoryFilters();
       updatePlanetFilterClasses();
       renderManifest();
@@ -731,7 +731,7 @@
           : '';
 
         const featuredBadge = m.featured
-          ? `<span class="font-mono-tech text-[8px] px-1 py-0.2 bg-[#ff3b00] text-white tracking-wider">★</span>`
+          ? `<span class="w-1.5 h-1.5 rounded-full bg-[#ff3b00] shrink-0"></span>`
           : '';
 
         node.innerHTML = `
@@ -986,7 +986,7 @@
       document.getElementById('drawer-title').textContent = m.title;
       document.getElementById('drawer-org').textContent = `${m.org} · ${m.year}`;
       document.getElementById('drawer-role').textContent = m.role;
-      document.getElementById('drawer-orbit').textContent = m.orbitLabel;
+      document.getElementById('drawer-orbit').textContent = m.year;
       document.getElementById('drawer-status').textContent = m.status;
       document.getElementById('drawer-brief').textContent = m.brief;
       document.getElementById('drawer-approach').textContent = m.approach;
