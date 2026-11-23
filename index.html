@@ -131,6 +131,41 @@
       margin-right: -0.02em;
     }
 
+    /* Radar scan wave animation */
+    @keyframes radarPing {
+      0% {
+        transform: translate(-50%, -50%) scale(0.15);
+        opacity: 0.7;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(3.2);
+        opacity: 0;
+      }
+    }
+
+    .ping-wave {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 320px;
+      height: 320px;
+      border-radius: 9999px;
+      border: 1px solid var(--accent);
+      pointer-events: none;
+      animation: radarPing 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      z-index: 10;
+    }
+
+    @keyframes radarEcho {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 0, 0.45); }
+      70% { transform: scale(1.16); box-shadow: 0 0 0 14px rgba(255, 59, 0, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 0, 0); }
+    }
+
+    .planet-sphere.radar-echo {
+      animation: radarEcho 0.75s ease-out;
+    }
+
     /* Blinking telemetry dot */
     @keyframes pulseDot {
       0%, 100% { opacity: 1; }
@@ -225,8 +260,11 @@
         <div>CURSOR: <span id="telemetry-coords" class="text-neutral-800">AZ 000.0° · EL +00.0°</span></div>
       </div>
 
-      <!-- Orbit Control -->
+      <!-- Orbit & Radar Controls -->
       <div class="absolute top-3.5 right-4 sm:right-8 z-30 flex items-center gap-2 font-mono-tech text-[10px]">
+        <button id="btn-radar-ping" class="px-2.5 py-1 bg-white/90 border border-neutral-300 hover:border-[#ff3b00] hover:text-[#ff3b00] text-neutral-700 transition-colors cursor-pointer" title="發射雷達掃描波 (Space)">
+          ◎ RADAR SCAN
+        </button>
         <button id="btn-orbit-toggle" class="px-2.5 py-1 bg-white/90 border border-neutral-300 hover:border-neutral-900 text-neutral-700 transition-colors cursor-pointer">
           ❚❚ PAUSE ORBIT
         </button>
@@ -433,6 +471,23 @@
       </p>
       <div class="mt-5 p-3 bg-neutral-50 border border-dashed border-neutral-300 font-mono-tech text-[11px] text-neutral-500">
         STATUS: STANDBY FOR FUTURE PAYLOAD
+      </div>
+    </div>
+  </div>
+
+  <!-- HYPERSPACE WARP TRANSITION OVERLAY (Based on User Sketch) -->
+  <div id="warp-overlay" class="fixed inset-0 z-[60] hidden items-center justify-center bg-white/95 backdrop-blur-xs opacity-0 transition-opacity duration-200 pointer-events-none">
+    <canvas id="warp-canvas" class="absolute inset-0 w-full h-full"></canvas>
+    <div class="relative z-10 flex flex-col items-center text-center">
+      <!-- Minimalist Vector Spacecraft -->
+      <div class="w-16 h-16 rounded-full bg-white border border-neutral-900 flex items-center justify-center shadow-sm">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L17 16L12 13.5L7 16L12 2Z" fill="#0a0a0a"/>
+          <path d="M12 15.5L14.5 21H9.5L12 15.5Z" fill="#ff3b00"/>
+        </svg>
+      </div>
+      <div class="mt-3 font-mono-tech text-[10px] tracking-[0.22em] text-neutral-900 uppercase">
+        WARPING...
       </div>
     </div>
   </div>
@@ -1114,8 +1169,128 @@
     document.getElementById('btn-close-uap').addEventListener('click', closeUapModal);
     uapModal.addEventListener('click', (e) => { if (e.target === uapModal) closeUapModal(); });
 
+    // --- RADAR SCAN PING ---
+    function triggerRadarPing() {
+      if (state.view !== 'orbital') switchView('orbital');
+      const wave1 = document.createElement('div');
+      wave1.className = 'ping-wave';
+      orbitalView.appendChild(wave1);
+      setTimeout(() => {
+        const wave2 = document.createElement('div');
+        wave2.className = 'ping-wave';
+        wave2.style.borderColor = '#0a0a0a';
+        wave2.style.opacity = '0.35';
+        orbitalView.appendChild(wave2);
+        setTimeout(() => wave2.remove(), 1550);
+      }, 180);
+      setTimeout(() => wave1.remove(), 1550);
+
+      // Echo pulse on featured planets as radar sweeps past
+      MISSIONS.filter(m => m.featured).forEach((m, idx) => {
+        const sphere = planetEls[m.id]?.querySelector('.planet-sphere');
+        if (!sphere) return;
+        setTimeout(() => {
+          sphere.classList.remove('radar-echo');
+          void sphere.offsetWidth;
+          sphere.classList.add('radar-echo');
+        }, 280 + idx * 140);
+      });
+    }
+
+    document.getElementById('btn-radar-ping').addEventListener('click', triggerRadarPing);
+
+    // --- HYPERSPACE WARP TRANSITION (Triggered on Launch Full Case Study) ---
+    let warpTimer = null;
+    let warpRaf = null;
+    function warpToCaseStudy(m, targetUrl) {
+      const overlay = document.getElementById('warp-overlay');
+      const canvas = document.getElementById('warp-canvas');
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+      requestAnimationFrame(() => overlay.classList.remove('opacity-0'));
+
+      const dpr = window.devicePixelRatio || 1;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const cx = w / 2;
+      const cy = h / 2;
+      const maxR = Math.hypot(cx, cy) + 80;
+      const LANE_COUNT = 96;
+
+      function spawnStreak(laneIdx, initial) {
+        // Each streak stays on its own dedicated radial lane so lines never intersect or collide
+        const angle = (laneIdx / LANE_COUNT) * Math.PI * 2;
+        return {
+          laneIdx,
+          angle,
+          dist: initial ? (46 + Math.random() * maxR * 0.8) : (44 + Math.random() * 28),
+          speed: 9 + Math.random() * 13,
+          len: 14 + Math.random() * 38,
+          isAccent: Math.random() < 0.22,
+          width: Math.random() < 0.25 ? 1.5 : 1
+        };
+      }
+
+      const streaks = Array.from({ length: LANE_COUNT }, (_, i) => spawnStreak(i, true));
+
+      if (warpRaf) cancelAnimationFrame(warpRaf);
+      function drawWarp() {
+        ctx.clearRect(0, 0, w, h);
+        for (let i = 0; i < streaks.length; i++) {
+          const st = streaks[i];
+          st.dist += st.speed;
+          st.speed *= 1.08;
+          st.len = Math.min(110, st.len * 1.035);
+          if (st.dist > maxR) {
+            streaks[i] = spawnStreak(st.laneIdx, false);
+            continue;
+          }
+          const x1 = cx + Math.cos(st.angle) * st.dist;
+          const y1 = cy + Math.sin(st.angle) * st.dist;
+          const x2 = cx + Math.cos(st.angle) * (st.dist + st.len);
+          const y2 = cy + Math.sin(st.angle) * (st.dist + st.len);
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.strokeStyle = st.isAccent ? '#ff3b00' : '#0a0a0a';
+          ctx.lineWidth = st.width;
+          ctx.globalAlpha = 0.78;
+          ctx.stroke();
+        }
+        warpRaf = requestAnimationFrame(drawWarp);
+      }
+      drawWarp();
+
+      if (warpTimer) clearTimeout(warpTimer);
+      warpTimer = setTimeout(() => {
+        if (warpRaf) cancelAnimationFrame(warpRaf);
+        overlay.classList.add('opacity-0');
+        if (targetUrl && targetUrl !== '#') {
+          window.open(targetUrl, '_blank', 'noopener,noreferrer');
+        }
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+          overlay.classList.remove('flex');
+        }, 200);
+      }, 1000);
+    }
+
+    document.getElementById('drawer-case-link').addEventListener('click', (e) => {
+      e.preventDefault();
+      const m = MISSIONS.find(x => x.id === state.selectedId);
+      if (m) warpToCaseStudy(m, m.caseStudyUrl);
+    });
+
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'Escape') {
+      if (e.code === 'Space' && !aboutModal.classList.contains('flex') && !uapModal.classList.contains('flex')) {
+        e.preventDefault();
+        triggerRadarPing();
+      } else if (e.code === 'Escape') {
         closeDrawer();
         closeAboutModal();
         closeUapModal();
