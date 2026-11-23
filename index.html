@@ -299,7 +299,7 @@
       <div id="planets-stage" class="absolute inset-0 w-full h-full z-20 pointer-events-none"></div>
 
       <!-- UAP Unidentified Signal Easter Egg (Minimalist Saucer Dot) -->
-      <button id="uap-craft" class="absolute z-[25] group p-1.5 rounded-full hover:scale-125 transition-transform cursor-pointer" style="left: -80px; top: 22%;" title="不明飛行訊號 — 點擊攔截">
+      <button id="uap-craft" class="absolute z-[25] group p-1.5 rounded-full hover:scale-125 transition-[opacity,transform] duration-300 cursor-pointer flex items-center gap-1" style="left: -80px; top: 22%;" title="不明飛行訊號 — 點擊攔截">
         <svg width="26" height="16" viewBox="0 0 26 16" fill="none" class="overflow-visible">
           <ellipse cx="13" cy="9" rx="11" ry="3.5" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.2"/>
           <path d="M8.5 7.5C8.5 4.8 10.5 3 13 3C15.5 3 17.5 4.8 17.5 7.5" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.2"/>
@@ -411,20 +411,14 @@
         </div>
       </div>
 
-      <!-- Detailed Case Study External Link CTA -->
-      <div class="pt-2">
-        <a id="drawer-case-link" href="#" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-between px-4 py-3 bg-neutral-950 text-white hover:bg-[#ff3b00] transition-colors font-mono-tech text-xs">
-          <span>LAUNCH FULL CASE STUDY 詳細專案報告</span>
-          <span>↗</span>
-        </a>
-        <p class="font-mono-tech text-[10px] text-neutral-400 mt-1.5" id="drawer-link-hint">可在程式 MISSIONS 資料中替換為 Notion / Figma / 獨立網頁連結</p>
-      </div>
     </div>
 
-    <!-- Drawer Footer Navigation -->
-    <div class="px-6 py-4 border-t border-neutral-200 flex items-center justify-between font-mono-tech text-xs bg-neutral-50">
-      <button id="btn-prev-mission" class="hover:text-[#ff3b00] cursor-pointer">← PREV PLANET</button>
-      <button id="btn-next-mission" class="hover:text-[#ff3b00] cursor-pointer">NEXT PLANET →</button>
+    <!-- Sticky Drawer Footer Primary CTA -->
+    <div class="px-6 py-4 border-t border-neutral-200 bg-white shrink-0">
+      <a id="drawer-case-link" href="#" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-between px-4 py-3.5 bg-neutral-950 text-white hover:bg-[#ff3b00] transition-colors font-mono-tech text-xs tracking-wide">
+        <span>LAUNCH FULL CASE STUDY 詳細專案報告</span>
+        <span>↗</span>
+      </a>
     </div>
   </aside>
 
@@ -713,7 +707,8 @@
       selectedId: null,
       uapProgress: 0.12,
       uapLane: 0,
-      uapPaused: false
+      uapPaused: false,
+      uapStealth: false
     };
 
     // --- DOM REFS ---
@@ -1070,12 +1065,7 @@
       setTimeout(() => drawerBackdrop.classList.add('hidden'), 280);
     }
 
-    function cycleMission(dir) {
-      const idx = MISSIONS.findIndex(x => x.id === state.selectedId);
-      if (idx === -1) return;
-      const nextIdx = (idx + dir + MISSIONS.length) % MISSIONS.length;
-      openDrawer(MISSIONS[nextIdx].id);
-    }
+
 
     // --- LIVE CLOCK & CURSOR TELEMETRY ---
     function updateClock() {
@@ -1130,8 +1120,7 @@
 
     document.getElementById('btn-close-drawer').addEventListener('click', closeDrawer);
     drawerBackdrop.addEventListener('click', closeDrawer);
-    document.getElementById('btn-prev-mission').addEventListener('click', () => cycleMission(-1));
-    document.getElementById('btn-next-mission').addEventListener('click', () => cycleMission(1));
+
 
     document.getElementById('btn-copy-email').addEventListener('click', () => {
       const email = 'hello@elvin.space';
@@ -1195,6 +1184,19 @@
           sphere.classList.add('radar-echo');
         }, 280 + idx * 140);
       });
+
+      // UAP detects radar scan -> turns subtle semi-transparent while remaining clickable
+      const uapEl = document.getElementById('uap-craft');
+      if (uapEl && !state.uapStealth) {
+        setTimeout(() => {
+          state.uapStealth = true;
+          uapEl.classList.add('opacity-20');
+          setTimeout(() => {
+            state.uapStealth = false;
+            uapEl.classList.remove('opacity-20');
+          }, 2200);
+        }, 220);
+      }
     }
 
     document.getElementById('btn-radar-ping').addEventListener('click', triggerRadarPing);
@@ -1202,7 +1204,8 @@
     // --- HYPERSPACE WARP TRANSITION (Triggered on Launch Full Case Study) ---
     let warpTimer = null;
     let warpRaf = null;
-    function warpToCaseStudy(m, targetUrl) {
+    function playWarp(durationMs, onComplete, mode = 'launch') {
+      const isCruise = mode === 'cruise';
       const overlay = document.getElementById('warp-overlay');
       const canvas = document.getElementById('warp-canvas');
       overlay.classList.remove('hidden');
@@ -1229,8 +1232,8 @@
           laneIdx,
           angle,
           dist: initial ? (46 + Math.random() * maxR * 0.8) : (44 + Math.random() * 28),
-          speed: 9 + Math.random() * 13,
-          len: 14 + Math.random() * 38,
+          speed: isCruise ? (3.5 + Math.random() * 5.5) : (9 + Math.random() * 13),
+          len: isCruise ? (10 + Math.random() * 22) : (14 + Math.random() * 38),
           isAccent: Math.random() < 0.22,
           width: Math.random() < 0.25 ? 1.5 : 1
         };
@@ -1244,8 +1247,8 @@
         for (let i = 0; i < streaks.length; i++) {
           const st = streaks[i];
           st.dist += st.speed;
-          st.speed *= 1.08;
-          st.len = Math.min(110, st.len * 1.035);
+          st.speed *= isCruise ? 1.035 : 1.08;
+          st.len = Math.min(isCruise ? 56 : 110, st.len * (isCruise ? 1.018 : 1.035));
           if (st.dist > maxR) {
             streaks[i] = spawnStreak(st.laneIdx, false);
             continue;
@@ -1270,20 +1273,24 @@
       warpTimer = setTimeout(() => {
         if (warpRaf) cancelAnimationFrame(warpRaf);
         overlay.classList.add('opacity-0');
-        if (targetUrl && targetUrl !== '#') {
-          window.open(targetUrl, '_blank', 'noopener,noreferrer');
-        }
+        if (typeof onComplete === 'function') onComplete();
         setTimeout(() => {
           overlay.classList.add('hidden');
           overlay.classList.remove('flex');
-        }, 200);
-      }, 1000);
+        }, 220);
+      }, durationMs);
     }
 
     document.getElementById('drawer-case-link').addEventListener('click', (e) => {
       e.preventDefault();
       const m = MISSIONS.find(x => x.id === state.selectedId);
-      if (m) warpToCaseStudy(m, m.caseStudyUrl);
+      if (m) {
+        playWarp(1000, () => {
+          if (m.caseStudyUrl && m.caseStudyUrl !== '#') {
+            window.open(m.caseStudyUrl, '_blank', 'noopener,noreferrer');
+          }
+        });
+      }
     });
 
     window.addEventListener('keydown', (e) => {
@@ -1306,6 +1313,18 @@
       setInterval(updateClock, 1000);
       if (rafId) cancelAnimationFrame(rafId);
       animateOrbits();
+
+      // First-visit-only landing warp transition
+      let seenIntro = false;
+      try {
+        seenIntro = sessionStorage.getItem('elvin_warp_seen') === '1';
+        if (!seenIntro) sessionStorage.setItem('elvin_warp_seen', '1');
+      } catch (e) {
+        seenIntro = false;
+      }
+      if (!seenIntro) {
+        playWarp(1150, null, 'cruise');
+      }
     });
   </script>
 </body>
